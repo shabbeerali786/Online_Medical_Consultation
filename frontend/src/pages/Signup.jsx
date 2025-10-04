@@ -46,7 +46,7 @@ const Signup = () => {
       return;
     }
 
-    const result = await signup(formData.name, formData.email, formData.password, formData.userType);
+    const result = await signup(formData.name, formData.email, formData.password, formData.userType, formData.specialization);
     
     if (result.success) {
       // Redirect based on user type

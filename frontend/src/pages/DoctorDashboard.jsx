@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
+import AppointmentManagement from '../components/AppointmentManagement';
 
 const DoctorDashboard = () => {
   const { user } = useAuth();
@@ -130,7 +131,7 @@ const DoctorDashboard = () => {
                   : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
               }`}
             >
-              Appointments
+              Appointment Management
             </button>
             <button
               onClick={() => setActiveTab('completed')}
@@ -140,46 +141,13 @@ const DoctorDashboard = () => {
                   : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
               }`}
             >
-              Completed
+              Prescription Management
             </button>
           </nav>
         </div>
 
         {/* Tab Content */}
-        {activeTab === 'appointments' && (
-          <div>
-            <h2 className="text-2xl font-bold mb-6">Upcoming Appointments</h2>
-            {upcomingAppointments.length === 0 ? (
-              <p className="text-gray-500">No upcoming appointments</p>
-            ) : (
-              <div className="space-y-4">
-                {upcomingAppointments.map((appointment) => (
-                  <div key={appointment.id} className="bg-white rounded-lg shadow-md p-6">
-                    <div className="flex justify-between items-start">
-                      <div className="flex-1">
-                        <h3 className="text-lg font-semibold text-gray-900">{appointment.patientName}</h3>
-                        <p className="text-gray-600">{appointment.patientEmail}</p>
-                        <p className="text-gray-600">{appointment.date} at {appointment.time}</p>
-                        <p className="text-gray-600">Reason: {appointment.reason}</p>
-                      </div>
-                      <div className="flex space-x-2">
-                        <span className="bg-green-100 text-green-800 px-3 py-1 rounded-full text-sm font-medium">
-                          {appointment.status}
-                        </span>
-                        <button
-                          onClick={() => openPrescriptionModal(appointment)}
-                          className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition-colors"
-                        >
-                          Add Prescription
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-        )}
+        {activeTab === 'appointments' && <AppointmentManagement />}
 
         {activeTab === 'completed' && (
           <div>

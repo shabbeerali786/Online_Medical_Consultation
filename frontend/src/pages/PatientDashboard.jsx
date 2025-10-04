@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
+import AppointmentManagement from '../components/AppointmentManagement';
 
 const PatientDashboard = () => {
   const { user } = useAuth();
@@ -14,53 +15,132 @@ const PatientDashboard = () => {
     reason: ''
   });
 
-  // Mock data
+  // Load data from backend
   useEffect(() => {
-    // Mock doctors data
-    const mockDoctors = [
-      { id: 1, name: 'Dr. Sarah Johnson', specialization: 'Cardiology', experience: '15 years', rating: 4.8 },
-      { id: 2, name: 'Dr. Michael Chen', specialization: 'Dermatology', experience: '12 years', rating: 4.6 },
-      { id: 3, name: 'Dr. Emily Davis', specialization: 'Neurology', experience: '18 years', rating: 4.9 },
-      { id: 4, name: 'Dr. Robert Wilson', specialization: 'Orthopedics', experience: '20 years', rating: 4.7 },
-      { id: 5, name: 'Dr. Lisa Brown', specialization: 'Pediatrics', experience: '10 years', rating: 4.5 },
-      { id: 6, name: 'Dr. James Miller', specialization: 'Psychiatry', experience: '14 years', rating: 4.4 },
-    ];
-    setDoctors(mockDoctors);
+    const loadData = async () => {
+      try {
+        // Load doctors from backend
+        const doctorsResponse = await fetch('http://localhost:5000/api/doctors');
+        if (doctorsResponse.ok) {
+          const backendDoctors = await doctorsResponse.json();
+          // Transform backend doctors to frontend format
+          const transformedDoctors = backendDoctors.map(doctor => ({
+            id: doctor._id,
+            name: doctor.user.name,
+            specialization: doctor.specialization,
+            experience: '15 years', // You can add this field to your Doctor model
+            rating: 4.8, // You can add this field to your Doctor model
+            bio: doctor.bio
+          }));
+          setDoctors(transformedDoctors);
+        } else {
+          console.error('Failed to load doctors from backend');
+          setDoctors([]);
+        }
 
-    // Mock appointments data
-    const mockAppointments = [
-      { id: 1, doctorName: 'Dr. Sarah Johnson', date: '2024-01-15', time: '10:00 AM', status: 'upcoming', reason: 'Heart checkup' },
-      { id: 2, doctorName: 'Dr. Michael Chen', date: '2024-01-10', time: '2:00 PM', status: 'completed', reason: 'Skin rash' },
-      { id: 3, doctorName: 'Dr. Emily Davis', date: '2024-01-20', time: '11:30 AM', status: 'upcoming', reason: 'Headache consultation' },
-    ];
-    setAppointments(mockAppointments);
+        // Load appointments from backend
+        const appointmentsResponse = await fetch('http://localhost:5000/api/appointments');
+        if (appointmentsResponse.ok) {
+          const backendAppointments = await appointmentsResponse.json();
+          // Transform backend data to frontend format
+          const transformedAppointments = backendAppointments.map(apt => ({
+            id: apt._id,
+            patientName: apt.patient?.name || 'Unknown Patient',
+            doctorName: apt.doctor?.user?.name || 'Unknown Doctor',
+            date: new Date(apt.dateTime).toISOString().split('T')[0],
+            time: new Date(apt.dateTime).toLocaleTimeString('en-US', { 
+              hour: '2-digit', 
+              minute: '2-digit',
+              hour12: true 
+            }),
+            status: apt.status,
+            reason: apt.reason
+          }));
+          setAppointments(transformedAppointments);
+        } else {
+          console.error('Failed to load appointments from backend');
+          setAppointments([]);
+        }
+      } catch (error) {
+        console.error('Error loading data:', error);
+        setDoctors([]);
+        setAppointments([]);
+      }
+    };
+
+    loadData();
   }, []);
 
   const filteredDoctors = doctors.filter(doctor => 
     !selectedSpecialization || doctor.specialization === selectedSpecialization
   );
 
-  const handleBookingSubmit = (e) => {
+  const handleBookingSubmit = async (e) => {
     e.preventDefault();
     if (!bookingForm.doctorId || !bookingForm.date || !bookingForm.time || !bookingForm.reason) {
       alert('Please fill in all fields');
       return;
     }
 
-    const selectedDoctor = doctors.find(d => d.id === parseInt(bookingForm.doctorId));
-    const newAppointment = {
-      id: Date.now(),
-      doctorName: selectedDoctor.name,
-      date: bookingForm.date,
-      time: bookingForm.time,
-      status: 'upcoming',
-      reason: bookingForm.reason
-    };
+    const selectedDoctor = doctors.find(d => d.id === bookingForm.doctorId);
+    
+    try {
+      // Convert time format from "10:00 AM" to "10:00"
+      const timeOnly = bookingForm.time.replace(/\s*(AM|PM)/i, '');
+      const isPM = bookingForm.time.toUpperCase().includes('PM');
+      let [hours, minutes] = timeOnly.split(':');
+      hours = parseInt(hours);
+      
+      if (isPM && hours !== 12) {
+        hours += 12;
+      } else if (!isPM && hours === 12) {
+        hours = 0;
+      }
+      
+      // Create appointment data for backend
+      const appointmentData = {
+        patient: user?.id, // logged-in patient id
+        doctor: selectedDoctor.id, // backend doctor id
+        dateTime: new Date(`${bookingForm.date}T${hours.toString().padStart(2, '0')}:${minutes}:00`).toISOString(),
+        reason: bookingForm.reason
+      };
 
-    setAppointments([...appointments, newAppointment]);
-    setBookingForm({ doctorId: '', date: '', time: '', reason: '' });
-    setActiveTab('appointments');
-    alert('Appointment booked successfully!');
+      console.log('Sending appointment data:', appointmentData);
+
+      // Make API call to backend
+      const response = await fetch('http://localhost:5000/api/appointments', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(appointmentData)
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to book appointment');
+      }
+
+      const newAppointment = await response.json();
+      
+      // Update local state
+      setAppointments([...appointments, {
+        id: newAppointment._id,
+        patientName: user?.name || 'John Patient',
+        doctorName: selectedDoctor.name,
+        date: bookingForm.date,
+        time: bookingForm.time,
+        status: 'scheduled',
+        reason: bookingForm.reason
+      }]);
+
+      setBookingForm({ doctorId: '', date: '', time: '', reason: '' });
+      setActiveTab('appointments');
+      alert('Appointment booked successfully!');
+    } catch (error) {
+      console.error('Error booking appointment:', error);
+      alert(`Failed to book appointment: ${error.message}`);
+    }
   };
 
   const upcomingAppointments = appointments.filter(apt => apt.status === 'upcoming');
@@ -105,7 +185,7 @@ const PatientDashboard = () => {
                   : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
               }`}
             >
-              My Appointments
+              Appointment Management
             </button>
           </nav>
         </div>
@@ -260,57 +340,7 @@ const PatientDashboard = () => {
           </div>
         )}
 
-        {activeTab === 'appointments' && (
-          <div>
-            <div className="mb-6">
-              <h2 className="text-2xl font-bold mb-4">Upcoming Appointments</h2>
-              {upcomingAppointments.length === 0 ? (
-                <p className="text-gray-500">No upcoming appointments</p>
-              ) : (
-                <div className="space-y-4">
-                  {upcomingAppointments.map((appointment) => (
-                    <div key={appointment.id} className="bg-white rounded-lg shadow-md p-6">
-                      <div className="flex justify-between items-start">
-                        <div>
-                          <h3 className="text-lg font-semibold text-gray-900">{appointment.doctorName}</h3>
-                          <p className="text-gray-600">{appointment.date} at {appointment.time}</p>
-                          <p className="text-gray-600">Reason: {appointment.reason}</p>
-                        </div>
-                        <span className="bg-green-100 text-green-800 px-3 py-1 rounded-full text-sm font-medium">
-                          {appointment.status}
-                        </span>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-
-            <div>
-              <h2 className="text-2xl font-bold mb-4">Past Appointments</h2>
-              {pastAppointments.length === 0 ? (
-                <p className="text-gray-500">No past appointments</p>
-              ) : (
-                <div className="space-y-4">
-                  {pastAppointments.map((appointment) => (
-                    <div key={appointment.id} className="bg-white rounded-lg shadow-md p-6">
-                      <div className="flex justify-between items-start">
-                        <div>
-                          <h3 className="text-lg font-semibold text-gray-900">{appointment.doctorName}</h3>
-                          <p className="text-gray-600">{appointment.date} at {appointment.time}</p>
-                          <p className="text-gray-600">Reason: {appointment.reason}</p>
-                        </div>
-                        <span className="bg-gray-100 text-gray-800 px-3 py-1 rounded-full text-sm font-medium">
-                          {appointment.status}
-                        </span>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-          </div>
-        )}
+        {activeTab === 'appointments' && <AppointmentManagement />}
       </div>
     </div>
   );
