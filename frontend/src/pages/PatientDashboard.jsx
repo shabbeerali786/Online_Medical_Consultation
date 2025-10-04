@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import AppointmentManagement from '../components/AppointmentManagement';
+import DocumentUpload from '../components/DocumentUpload';
+import MessagingPanel from '../components/MessagingPanel';
 
 const PatientDashboard = () => {
   const { user } = useAuth();
@@ -14,6 +16,7 @@ const PatientDashboard = () => {
     time: '',
     reason: ''
   });
+  const [selectedAppointmentForChat, setSelectedAppointmentForChat] = useState(null);
 
   // Load data from backend
   useEffect(() => {
@@ -187,6 +190,26 @@ const PatientDashboard = () => {
             >
               Appointment Management
             </button>
+            <button
+              onClick={() => setActiveTab('documents')}
+              className={`py-2 px-1 border-b-2 font-medium text-sm ${
+                activeTab === 'documents'
+                  ? 'border-blue-500 text-blue-600'
+                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+              }`}
+            >
+              My Documents
+            </button>
+            <button
+              onClick={() => setActiveTab('messages')}
+              className={`py-2 px-1 border-b-2 font-medium text-sm ${
+                activeTab === 'messages'
+                  ? 'border-blue-500 text-blue-600'
+                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+              }`}
+            >
+              Messages
+            </button>
           </nav>
         </div>
 
@@ -341,9 +364,50 @@ const PatientDashboard = () => {
         )}
 
         {activeTab === 'appointments' && <AppointmentManagement />}
+
+        {activeTab === 'documents' && <DocumentUpload />}
+
+        {activeTab === 'messages' && (
+          <div>
+            <h2 className="text-2xl font-bold mb-6">Messages</h2>
+            {appointments.length === 0 ? (
+              <p className="text-gray-500">No appointments yet. Book an appointment to start messaging with doctors.</p>
+            ) : (
+              <div className="space-y-4">
+                <div className="bg-white rounded-lg shadow-md p-4">
+                  <h3 className="font-semibold mb-4">Select an appointment to chat:</h3>
+                  <div className="space-y-2">
+                    {appointments.map((apt) => (
+                      <button
+                        key={apt.id}
+                        onClick={() => setSelectedAppointmentForChat(apt)}
+                        className={`w-full text-left p-3 rounded-lg border transition-colors ${
+                          selectedAppointmentForChat?.id === apt.id
+                            ? 'border-blue-500 bg-blue-50'
+                            : 'border-gray-200 hover:border-blue-300'
+                        }`}
+                      >
+                        <p className="font-semibold">{apt.doctorName}</p>
+                        <p className="text-sm text-gray-600">{apt.date} at {apt.time}</p>
+                        <p className="text-xs text-gray-500">{apt.reason}</p>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+                {selectedAppointmentForChat && (
+                  <MessagingPanel
+                    appointmentId={selectedAppointmentForChat.id}
+                    otherUserId={doctors.find(d => d.name === selectedAppointmentForChat.doctorName)?.id}
+                    otherUserName={selectedAppointmentForChat.doctorName}
+                  />
+                )}
+              </div>
+            )}
+          </div>
+        )}
       </div>
     </div>
   );
 };
 
-export default PatientDashboard; 
+export default PatientDashboard;
