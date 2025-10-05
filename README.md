@@ -190,6 +190,67 @@ backend/
 └── package.json
 ```
 
+## 🚀 Deployment
+
+This application is ready for production deployment!
+
+### Quick Deploy (15 minutes)
+Follow the [HOSTING_QUICK_START.md](./HOSTING_QUICK_START.md) guide for step-by-step deployment instructions.
+
+### Deployment Documentation
+- **[HOSTING_QUICK_START.md](./HOSTING_QUICK_START.md)** - Quick 15-minute deployment guide
+- **[DEPLOYMENT.md](./DEPLOYMENT.md)** - Comprehensive deployment documentation
+- **[PRE_DEPLOYMENT_CHECKLIST.md](./PRE_DEPLOYMENT_CHECKLIST.md)** - Pre-deployment checklist
+- **[PLATFORM_COMPARISON.md](./PLATFORM_COMPARISON.md)** - Hosting platform comparison
+
+### Recommended Stack (Free Tier)
+- **Frontend**: Vercel (free tier)
+- **Backend**: Render (free tier with sleep)
+- **Database**: MongoDB Atlas (free 512MB)
+
+### Environment Variables Required
+
+**Backend** (`backend/.env`):
+```env
+PORT=5000
+MONGODB_URI=your_mongodb_connection_string
+MONGODB_DB_NAME=online_medical
+NODE_ENV=production
+FRONTEND_URL=https://your-frontend-url.com
+```
+
+**Frontend** (`frontend/.env.production`):
+```env
+VITE_API_URL=https://your-backend-url.com/api
+```
+
+### Deployment Files Included
+- ✅ Docker configuration (`Dockerfile`, `docker-compose.yml`)
+- ✅ Render configuration (`render.yaml`)
+- ✅ Vercel configuration (`vercel.json`)
+- ✅ Netlify configuration (`netlify.toml`)
+- ✅ Heroku configuration (`Procfile`)
+- ✅ Deployment scripts (PowerShell & Bash)
+
+### Quick Deploy Commands
+
+**Using Docker:**
+```bash
+docker-compose up -d
+```
+
+**Using Scripts (Windows):**
+```powershell
+.\scripts\deploy-backend.ps1
+.\scripts\deploy-frontend.ps1
+```
+
+**Using Scripts (Linux/Mac):**
+```bash
+./scripts/deploy-backend.sh
+./scripts/deploy-frontend.sh
+```
+
 ## Contributing
 
 1. Fork the repository

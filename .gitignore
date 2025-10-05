@@ -8,6 +8,14 @@ node_modules/
 .env.development.local
 .env.test.local
 .env.production.local
+backend/.env
+backend/.env.local
+frontend/.env.local
+
+# Keep example and template files
+!backend/ENV.example
+!frontend/.env.production
+!frontend/.env.development
 
 # Build outputs
 dist/
@@ -96,3 +104,11 @@ jspm_packages/
 # OS
 .DS_Store
 Thumbs.db
+
+# Uploads (user-generated content)
+backend/uploads/*
+!backend/uploads/.gitkeep
+
+# Docker
+.docker/
+docker-compose.override.yml
