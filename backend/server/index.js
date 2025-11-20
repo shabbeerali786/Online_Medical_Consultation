@@ -9,6 +9,7 @@ import doctorsRouter from './routes/doctors.js';
 import appointmentsRouter from './routes/appointments.js';
 import documentsRouter from './routes/documents.js';
 import messagesRouter from './routes/messages.js';
+import { startAutoCancellationJob } from './jobs/autoCancel.js';
 import path from 'path';
 import { fileURLToPath } from 'url';
 
@@ -20,25 +21,18 @@ dotenv.config();
 const app = express();
 
 // CORS configuration
-const allowedOrigins = [
-	'http://localhost:5173',
-	'http://localhost:3000',
-	process.env.FRONTEND_URL
-].filter(Boolean);
+const corsOptions = {
+    origin: [
+        'https://online-medical-consultation-fronten.vercel.app',
+        'http://localhost:5173',
+        'http://localhost:5000'
+    ],
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization']
+};
 
-app.use(cors({
-	origin: function(origin, callback) {
-		// Allow requests with no origin (like mobile apps or curl requests)
-		if (!origin) return callback(null, true);
-		
-		if (allowedOrigins.indexOf(origin) !== -1 || process.env.NODE_ENV === 'development') {
-			callback(null, true);
-		} else {
-			callback(new Error('Not allowed by CORS'));
-		}
-	},
-	credentials: true
-}));
+app.use(cors(corsOptions));
 
 app.use(express.json());
 
@@ -73,6 +67,9 @@ const startServer = async () => {
 		app.listen(port, () => {
 			console.log(`Server listening on port ${port}`);
 		});
+
+		// Start background job after DB is connected
+		startAutoCancellationJob();
 	} catch (error) {
 		console.error('Failed to start server:', error.message);
 		process.exit(1);

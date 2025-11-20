@@ -118,6 +118,54 @@ router.put('/:id', async (req, res) => {
 	}
 });
 
+// Confirm appointment
+router.patch('/:id/confirm', async (req, res) => {
+	try {
+		const appointment = await Appointment.findById(req.params.id);
+		if (!appointment) {
+			return res.status(404).json({ error: 'Appointment not found' });
+		}
+		if (['cancelled', 'cancelled-no-show'].includes(appointment.status)) {
+			return res.status(400).json({ error: 'Cannot confirm a cancelled appointment' });
+		}
+		appointment.status = 'confirmed';
+		if (!appointment.confirmedAt) appointment.confirmedAt = new Date();
+		await appointment.save();
+		const populatedAppointment = await Appointment.findById(appointment._id)
+			.populate('patient', 'name email phone')
+			.populate({ path: 'doctor', populate: { path: 'user', select: 'name email phone' } })
+			.lean();
+		res.json(populatedAppointment);
+	} catch (err) {
+		res.status(400).json({ error: err.message });
+	}
+});
+
+// Patient check-in
+router.patch('/:id/checkin', async (req, res) => {
+	try {
+		const appointment = await Appointment.findById(req.params.id);
+		if (!appointment) {
+			return res.status(404).json({ error: 'Appointment not found' });
+		}
+		if (['cancelled', 'cancelled-no-show'].includes(appointment.status)) {
+			return res.status(400).json({ error: 'Cannot check in to a cancelled appointment' });
+		}
+		if (!appointment.checkedInAt) appointment.checkedInAt = new Date();
+		if (['scheduled', 'confirmed'].includes(appointment.status)) {
+			appointment.status = 'in-progress';
+		}
+		await appointment.save();
+		const populatedAppointment = await Appointment.findById(appointment._id)
+			.populate('patient', 'name email phone')
+			.populate({ path: 'doctor', populate: { path: 'user', select: 'name email phone' } })
+			.lean();
+		res.json(populatedAppointment);
+	} catch (err) {
+		res.status(400).json({ error: err.message });
+	}
+});
+
 // Cancel appointment
 router.patch('/:id/cancel', async (req, res) => {
 	try {
@@ -199,7 +247,7 @@ router.patch('/:id/status', async (req, res) => {
 	try {
 		const { status } = req.body;
 		
-		const validStatuses = ['scheduled', 'confirmed', 'in-progress', 'completed', 'cancelled', 'rescheduled'];
+		const validStatuses = ['scheduled', 'confirmed', 'in-progress', 'completed', 'cancelled', 'rescheduled', 'cancelled-no-show'];
 		if (!validStatuses.includes(status)) {
 			return res.status(400).json({ error: 'Invalid status' });
 		}

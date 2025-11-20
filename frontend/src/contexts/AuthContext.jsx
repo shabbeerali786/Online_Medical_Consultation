@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState } from 'react';
+import React, { createContext, useContext, useState, useCallback } from 'react';
 
 const AuthContext = createContext();
 
@@ -33,7 +33,12 @@ export const AuthProvider = ({ children }) => {
 
       // Check if user role matches the selected userType
       if (data.role !== userType) {
-        throw new Error(`Please select the correct user type. This account is registered as ${data.role}`);
+        throw new Error(`Invalid email or password. Please select the correct user type (${data.role})`);
+      }
+
+      // Check if user is active
+      if (data.isActive === false) {
+        throw new Error('Account is deactivated. Please contact support.');
       }
 
       const userData = {
@@ -54,7 +59,7 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  const signup = async (name, email, password, userType, specialization = '') => {
+  const signup = async (name, email, password, userType, specialization = '', qualification = '', licenseNumber = '') => {
     setLoading(true);
     try {
       const response = await fetch('http://localhost:5000/api/users', {
@@ -67,7 +72,9 @@ export const AuthProvider = ({ children }) => {
           email, 
           password, 
           role: userType,
-          specialization: userType === 'doctor' ? specialization : undefined
+          specialization: userType === 'doctor' ? specialization : undefined,
+          qualification: userType === 'doctor' ? qualification : undefined,
+          licenseNumber: userType === 'doctor' ? licenseNumber : undefined
         }),
       });
 
@@ -100,12 +107,12 @@ export const AuthProvider = ({ children }) => {
     localStorage.removeItem('user');
   };
 
-  const checkAuth = () => {
+  const checkAuth = useCallback(() => {
     const savedUser = localStorage.getItem('user');
     if (savedUser) {
       setUser(JSON.parse(savedUser));
     }
-  };
+  }, []);
 
   const value = {
     user,

@@ -26,15 +26,17 @@ const PatientDashboard = () => {
         const doctorsResponse = await fetch('http://localhost:5000/api/doctors');
         if (doctorsResponse.ok) {
           const backendDoctors = await doctorsResponse.json();
+          console.log('Backend doctors data:', backendDoctors); // Debug log
           // Transform backend doctors to frontend format
           const transformedDoctors = backendDoctors.map(doctor => ({
             id: doctor._id,
-            name: doctor.user.name,
-            specialization: doctor.specialization,
-            experience: '15 years', // You can add this field to your Doctor model
+            name: doctor.user?.name || 'Unknown Doctor',
+            specialization: doctor.specialization || 'General Medicine',
+            experience: `${doctor.experience || 0} years`,
             rating: 4.8, // You can add this field to your Doctor model
-            bio: doctor.bio
+            bio: doctor.bio || 'No bio available'
           }));
+          console.log('Transformed doctors data:', transformedDoctors); // Debug log
           setDoctors(transformedDoctors);
         } else {
           console.error('Failed to load doctors from backend');
@@ -236,34 +238,45 @@ const PatientDashboard = () => {
               </select>
             </div>
 
-            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {filteredDoctors.map((doctor) => (
-                <div key={doctor.id} className="bg-white rounded-lg shadow-md p-6">
-                  <div className="flex items-center mb-4">
-                    <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center text-blue-600 font-bold text-lg">
-                      {doctor.name.split(' ').map(n => n[0]).join('')}
+            {filteredDoctors.length === 0 ? (
+              <div className="text-center py-8">
+                <p className="text-gray-500 text-lg">No doctors found.</p>
+                <p className="text-gray-400 text-sm mt-2">
+                  {doctors.length === 0 
+                    ? "No doctors are available at the moment. Please try again later." 
+                    : "No doctors match the selected specialization filter."}
+                </p>
+              </div>
+            ) : (
+              <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {filteredDoctors.map((doctor) => (
+                  <div key={doctor.id} className="bg-white rounded-lg shadow-md p-6">
+                    <div className="flex items-center mb-4">
+                      <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center text-blue-600 font-bold text-lg">
+                        {doctor.name.split(' ').map(n => n[0]).join('')}
+                      </div>
+                      <div className="ml-4">
+                        <h3 className="text-lg font-semibold text-gray-900">{doctor.name}</h3>
+                        <p className="text-sm text-gray-600">{doctor.specialization}</p>
+                      </div>
                     </div>
-                    <div className="ml-4">
-                      <h3 className="text-lg font-semibold text-gray-900">{doctor.name}</h3>
-                      <p className="text-sm text-gray-600">{doctor.specialization}</p>
+                    <div className="space-y-2">
+                      <p className="text-sm text-gray-600">Experience: {doctor.experience}</p>
+                      <p className="text-sm text-gray-600">Rating: ⭐ {doctor.rating}/5</p>
                     </div>
+                    <button
+                      onClick={() => {
+                        setBookingForm({ ...bookingForm, doctorId: doctor.id });
+                        setActiveTab('book');
+                      }}
+                      className="mt-4 w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 transition-colors"
+                    >
+                      Book Appointment
+                    </button>
                   </div>
-                  <div className="space-y-2">
-                    <p className="text-sm text-gray-600">Experience: {doctor.experience}</p>
-                    <p className="text-sm text-gray-600">Rating: ⭐ {doctor.rating}/5</p>
-                  </div>
-                  <button
-                    onClick={() => {
-                      setBookingForm({ ...bookingForm, doctorId: doctor.id });
-                      setActiveTab('book');
-                    }}
-                    className="mt-4 w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 transition-colors"
-                  >
-                    Book Appointment
-                  </button>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
+            )}
           </div>
         )}
 

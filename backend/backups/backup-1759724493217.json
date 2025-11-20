@@ -1,0 +1,130 @@
+{
+  "timestamp": "2025-10-06T04:21:33.213Z",
+  "users": [
+    {
+      "_id": "68e3429a625e760b778a6c5f",
+      "name": "Admin User",
+      "email": "admin@admin.com",
+      "password": "$2b$10$z6R9QiG0OqQmgSIFmhMZs.6HQIs0tv8U5ZhTuRQFSlhX6rAo6SJwm",
+      "role": "admin",
+      "isVerified": true,
+      "isActive": true,
+      "createdAt": "2025-10-06T04:16:26.551Z",
+      "updatedAt": "2025-10-06T04:16:26.551Z",
+      "__v": 0
+    },
+    {
+      "_id": "68e3429a625e760b778a6c60",
+      "name": "John Patient",
+      "email": "patient@demo.com",
+      "password": "$2b$10$z6R9QiG0OqQmgSIFmhMZs.6HQIs0tv8U5ZhTuRQFSlhX6rAo6SJwm",
+      "role": "patient",
+      "isVerified": false,
+      "isActive": true,
+      "createdAt": "2025-10-06T04:16:26.551Z",
+      "updatedAt": "2025-10-06T04:16:26.551Z",
+      "__v": 0
+    },
+    {
+      "_id": "68e3429a625e760b778a6c63",
+      "name": "Dr. Karthik Subramanian",
+      "email": "karthik@demo.com",
+      "password": "$2b$10$z6R9QiG0OqQmgSIFmhMZs.6HQIs0tv8U5ZhTuRQFSlhX6rAo6SJwm",
+      "role": "doctor",
+      "isVerified": false,
+      "isActive": true,
+      "createdAt": "2025-10-06T04:16:26.551Z",
+      "updatedAt": "2025-10-06T04:16:26.551Z",
+      "__v": 0
+    },
+    {
+      "_id": "68e3429a625e760b778a6c61",
+      "name": "Dr. Aravind Raj",
+      "email": "aravind@demo.com",
+      "password": "$2b$10$z6R9QiG0OqQmgSIFmhMZs.6HQIs0tv8U5ZhTuRQFSlhX6rAo6SJwm",
+      "role": "doctor",
+      "isVerified": false,
+      "isActive": true,
+      "createdAt": "2025-10-06T04:16:26.551Z",
+      "updatedAt": "2025-10-06T04:16:26.551Z",
+      "__v": 0
+    },
+    {
+      "_id": "68e3429a625e760b778a6c62",
+      "name": "Dr. Priya Lakshmi",
+      "email": "priya@demo.com",
+      "password": "$2b$10$z6R9QiG0OqQmgSIFmhMZs.6HQIs0tv8U5ZhTuRQFSlhX6rAo6SJwm",
+      "role": "doctor",
+      "isVerified": false,
+      "isActive": true,
+      "createdAt": "2025-10-06T04:16:26.551Z",
+      "updatedAt": "2025-10-06T04:16:26.551Z",
+      "__v": 0
+    },
+    {
+      "_id": "68e34304dadaf40ac49a439f",
+      "name": "rupak",
+      "email": "rupak@patient.com",
+      "password": "$2b$10$i9AqBFba464eaJjlx9GSKeP4ktdJFXsxhJ4I5S0mMEXYKy2oiryki",
+      "role": "patient",
+      "isVerified": false,
+      "isActive": true,
+      "createdAt": "2025-10-06T04:18:12.925Z",
+      "updatedAt": "2025-10-06T04:18:12.925Z",
+      "__v": 0
+    }
+  ],
+  "doctors": [
+    {
+      "_id": "68e3429a625e760b778a6c6a",
+      "user": "68e3429a625e760b778a6c62",
+      "specialization": "Dermatology",
+      "bio": "Specialist in skin conditions and treatments",
+      "available": true,
+      "licenseNumber": "DERM789012",
+      "qualification": "MD in Dermatology",
+      "experience": 12,
+      "verificationStatus": "approved",
+      "consultationFee": 0,
+      "verificationDocuments": [],
+      "availableSlots": [],
+      "createdAt": "2025-10-06T04:16:26.925Z",
+      "updatedAt": "2025-10-06T04:16:26.925Z",
+      "__v": 0
+    },
+    {
+      "_id": "68e3429a625e760b778a6c69",
+      "user": "68e3429a625e760b778a6c61",
+      "specialization": "Cardiology",
+      "bio": "Experienced cardiologist with 15 years of practice",
+      "available": true,
+      "licenseNumber": "CARD123456",
+      "qualification": "MD in Cardiology",
+      "experience": 15,
+      "verificationStatus": "approved",
+      "consultationFee": 0,
+      "verificationDocuments": [],
+      "availableSlots": [],
+      "createdAt": "2025-10-06T04:16:26.925Z",
+      "updatedAt": "2025-10-06T04:16:26.925Z",
+      "__v": 0
+    },
+    {
+      "_id": "68e3429a625e760b778a6c6b",
+      "user": "68e3429a625e760b778a6c63",
+      "specialization": "Neurology",
+      "bio": "Expert in neurological disorders",
+      "available": true,
+      "licenseNumber": "NEURO345678",
+      "qualification": "MD in Neurology",
+      "experience": 18,
+      "verificationStatus": "approved",
+      "consultationFee": 0,
+      "verificationDocuments": [],
+      "availableSlots": [],
+      "createdAt": "2025-10-06T04:16:26.925Z",
+      "updatedAt": "2025-10-06T04:16:26.925Z",
+      "__v": 0
+    }
+  ]
+}

@@ -9,7 +9,9 @@ const Signup = () => {
     password: '',
     confirmPassword: '',
     userType: 'patient',
-    specialization: ''
+    specialization: '',
+    qualification: '',
+    licenseNumber: ''
   });
   const [error, setError] = useState('');
   const { signup, loading } = useAuth();
@@ -46,7 +48,25 @@ const Signup = () => {
       return;
     }
 
-    const result = await signup(formData.name, formData.email, formData.password, formData.userType, formData.specialization);
+    if (formData.userType === 'doctor' && !formData.qualification) {
+      setError('Please enter your qualification');
+      return;
+    }
+
+    if (formData.userType === 'doctor' && !formData.licenseNumber) {
+      setError('Please enter your license number');
+      return;
+    }
+
+    const result = await signup(
+      formData.name, 
+      formData.email, 
+      formData.password, 
+      formData.userType, 
+      formData.specialization,
+      formData.qualification,
+      formData.licenseNumber
+    );
     
     if (result.success) {
       // Redirect based on user type
@@ -124,27 +144,65 @@ const Signup = () => {
             </div>
 
             {formData.userType === 'doctor' && (
-              <div>
-                <label htmlFor="specialization" className="block text-sm font-medium text-gray-700">
-                  Specialization
-                </label>
-                <select
-                  id="specialization"
-                  name="specialization"
-                  value={formData.specialization}
-                  onChange={handleChange}
-                  className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md"
-                >
-                  <option value="">Select specialization</option>
-                  <option value="Cardiology">Cardiology</option>
-                  <option value="Dermatology">Dermatology</option>
-                  <option value="Neurology">Neurology</option>
-                  <option value="Orthopedics">Orthopedics</option>
-                  <option value="Pediatrics">Pediatrics</option>
-                  <option value="Psychiatry">Psychiatry</option>
-                  <option value="General Medicine">General Medicine</option>
-                </select>
-              </div>
+              <>
+                <div>
+                  <label htmlFor="specialization" className="block text-sm font-medium text-gray-700">
+                    Specialization
+                  </label>
+                  <select
+                    id="specialization"
+                    name="specialization"
+                    value={formData.specialization}
+                    onChange={handleChange}
+                    className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md"
+                  >
+                    <option value="">Select specialization</option>
+                    <option value="Cardiology">Cardiology</option>
+                    <option value="Dermatology">Dermatology</option>
+                    <option value="Neurology">Neurology</option>
+                    <option value="Orthopedics">Orthopedics</option>
+                    <option value="Pediatrics">Pediatrics</option>
+                    <option value="Psychiatry">Psychiatry</option>
+                    <option value="General Medicine">General Medicine</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label htmlFor="qualification" className="block text-sm font-medium text-gray-700">
+                    Qualification
+                  </label>
+                  <div className="mt-1">
+                    <input
+                      id="qualification"
+                      name="qualification"
+                      type="text"
+                      required
+                      value={formData.qualification}
+                      onChange={handleChange}
+                      className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                      placeholder="e.g., MBBS, MD"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label htmlFor="licenseNumber" className="block text-sm font-medium text-gray-700">
+                    License Number
+                  </label>
+                  <div className="mt-1">
+                    <input
+                      id="licenseNumber"
+                      name="licenseNumber"
+                      type="text"
+                      required
+                      value={formData.licenseNumber}
+                      onChange={handleChange}
+                      className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                      placeholder="Enter your medical license number"
+                    />
+                  </div>
+                </div>
+              </>
             )}
 
             <div>

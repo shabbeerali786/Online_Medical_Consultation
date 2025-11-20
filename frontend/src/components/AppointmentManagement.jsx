@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 
 const AppointmentManagement = () => {
@@ -10,25 +10,53 @@ const AppointmentManagement = () => {
   const [showRescheduleModal, setShowRescheduleModal] = useState(false);
   const [showCancelModal, setShowCancelModal] = useState(false);
   const [selectedAppointment, setSelectedAppointment] = useState(null);
+  const isFetchingRef = useRef(false);
 
   useEffect(() => {
-    fetchAppointments();
+    // Reset flag when component mounts
+    isFetchingRef.current = false;
+    
+    if (user?.id) {
+      fetchAppointments();
+    }
+    
+    // Cleanup: reset flag when component unmounts
+    return () => {
+      isFetchingRef.current = false;
+    };
   }, [selectedStatus, selectedDate]);
 
   const fetchAppointments = async () => {
+    if (isFetchingRef.current) {
+      console.log('Already fetching, skipping...');
+      return;
+    }
+    
+    if (!user?.id) {
+      console.log('No user ID, skipping fetch');
+      return;
+    }
+    
     try {
+      isFetchingRef.current = true;
       setLoading(true);
       let url = 'http://localhost:5000/api/appointments?';
       
       if (user.userType === 'patient') {
         url += `patientId=${user.id}`;
       } else if (user.userType === 'doctor') {
-        // First get doctor ID from user
-        const doctorResponse = await fetch(`http://localhost:5000/api/doctors`);
-        const doctors = await doctorResponse.json();
-        const doctor = doctors.find(d => d.user._id === user.id);
-        if (doctor) {
+        // Get doctor ID from user ID using the dedicated endpoint
+        const doctorResponse = await fetch(`http://localhost:5000/api/doctors/user/${user.id}`);
+        
+        if (doctorResponse.ok) {
+          const doctor = await doctorResponse.json();
           url += `doctorId=${doctor._id}`;
+        } else {
+          console.error('Doctor profile not found');
+          setAppointments([]);
+          setLoading(false);
+          isFetchingRef.current = false;
+          return;
         }
       }
       
@@ -41,12 +69,19 @@ const AppointmentManagement = () => {
       }
       
       const response = await fetch(url);
+      
+      if (!response.ok) {
+        throw new Error(`Failed to fetch appointments: ${response.status}`);
+      }
+      
       const data = await response.json();
       setAppointments(data);
     } catch (error) {
       console.error('Error fetching appointments:', error);
+      setAppointments([]);
     } finally {
       setLoading(false);
+      isFetchingRef.current = false;
     }
   };
 
@@ -114,21 +149,37 @@ const AppointmentManagement = () => {
 
   const handleStatusUpdate = async (appointmentId, newStatus) => {
     try {
+      console.log('Updating appointment:', appointmentId, 'to status:', newStatus);
+      
+      // Reset the fetching flag to allow refetch after update
+      isFetchingRef.current = false;
+      
       const response = await fetch(`http://localhost:5000/api/appointments/${appointmentId}/status`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ status: newStatus })
       });
       
+      console.log('Status update response:', response.status);
+      
       if (response.ok) {
-        fetchAppointments();
+        const updatedAppointment = await response.json();
+        console.log('Updated appointment:', updatedAppointment);
+        
+        // Update the appointment in the local state immediately
+        setAppointments(prev => prev.map(apt => 
+          apt._id === appointmentId ? updatedAppointment : apt
+        ));
+        
         alert('Appointment status updated successfully');
       } else {
-        alert('Failed to update appointment status');
+        const errorData = await response.json();
+        console.error('Status update failed:', errorData);
+        alert(`Failed to update appointment status: ${errorData.error || 'Unknown error'}`);
       }
     } catch (error) {
       console.error('Error updating appointment status:', error);
-      alert('Error updating appointment status');
+      alert(`Error updating appointment status: ${error.message}`);
     }
   };
 

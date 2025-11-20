@@ -14,12 +14,19 @@ router.get('/', async (req, res) => {
 // Create new user (signup)
 router.post('/', async (req, res) => {
 	try {
-		const { name, email, password, role, specialization } = req.body;
+		const { name, email, password, role, specialization, qualification, licenseNumber } = req.body;
 		
 		// Check if user already exists
 		const existingUser = await User.findOne({ email });
 		if (existingUser) {
 			return res.status(400).json({ error: 'User already exists with this email' });
+		}
+
+		// Validate doctor-specific fields
+		if (role === 'doctor') {
+			if (!specialization || !qualification || !licenseNumber) {
+				return res.status(400).json({ error: 'Specialization, qualification, and license number are required for doctors' });
+			}
 		}
 
 		// Hash password
@@ -37,9 +44,13 @@ router.post('/', async (req, res) => {
 		if (role === 'doctor') {
 			await Doctor.create({
 				user: user._id,
-				specialization: specialization || 'General Medicine',
-				bio: `Dr. ${name} - ${specialization || 'General Medicine'} specialist`,
-				available: true
+				specialization,
+				qualification,
+				licenseNumber,
+				bio: `Dr. ${name} - ${specialization} specialist`,
+				available: true,
+				verificationStatus: 'approved', // Auto-approve for now (change to 'pending' for production)
+				experience: 0
 			});
 		}
 

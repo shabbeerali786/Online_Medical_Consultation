@@ -10,7 +10,13 @@ router.get('/', async (req, res) => {
 		const { status, specialization } = req.query;
 		let query = {};
 		
-		if (status) query.verificationStatus = status;
+		// Default to only show approved doctors unless status is explicitly specified
+		if (status) {
+			query.verificationStatus = status;
+		} else {
+			query.verificationStatus = 'approved';
+		}
+		
 		if (specialization) query.specialization = new RegExp(specialization, 'i');
 		
 		const doctors = await Doctor.find(query)
@@ -175,6 +181,38 @@ router.get('/verification/pending', async (req, res) => {
 			.populate('user', 'name email phone isVerified')
 			.lean();
 		res.json(doctors);
+	} catch (err) {
+		res.status(500).json({ error: 'Internal server error' });
+	}
+});
+
+// Get doctor by user ID
+router.get('/user/:userId', async (req, res) => {
+	try {
+		const doctor = await Doctor.findOne({ user: req.params.userId })
+			.populate('user', 'name email phone isVerified')
+			.lean();
+		
+		if (!doctor) {
+			return res.status(404).json({ error: 'Doctor profile not found' });
+		}
+		res.json(doctor);
+	} catch (err) {
+		res.status(500).json({ error: 'Internal server error' });
+	}
+});
+
+// Approve all pending doctors (for development/testing)
+router.post('/approve-all', async (req, res) => {
+	try {
+		const result = await Doctor.updateMany(
+			{ verificationStatus: 'pending' },
+			{ verificationStatus: 'approved', verifiedAt: new Date() }
+		);
+		res.json({ 
+			message: 'All pending doctors approved', 
+			modifiedCount: result.modifiedCount 
+		});
 	} catch (err) {
 		res.status(500).json({ error: 'Internal server error' });
 	}
